@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using API.DTOs;
 using API.Interfaces;
 using AutoMapper;
@@ -41,6 +42,22 @@ namespace API.Controllers
         //     return _mapper.Map<MemberDto>(user);
         //  }
 
+        [HttpPut]
+        public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdate)
+        {
+            var username = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            var user = await _userRepository.GetUserByUsername(username);
+            if (user != null)
+            {
+                _mapper.Map(memberUpdate, user);
+                _userRepository.Update(user);
+
+                if(await _userRepository.SaveAll())
+                    return NoContent();
+            }
+
+            return BadRequest("Failed to update user");
+        }
 
     }
 }
