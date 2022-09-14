@@ -1,6 +1,7 @@
 
 using API.DTOs;
 using API.Entities;
+using API.Helpers;
 using API.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -52,14 +53,30 @@ namespace API.Data.Repositories
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<IEnumerable<MemberDto>> GetMembers()
+        public async Task<PagedList<MemberDto>> GetMembers(UserParams userParams)
         {
-            return await _context.Users
-            .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+            var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
+            var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
+
+            var usersQuery = _context.Users.AsQueryable();
+            usersQuery = usersQuery.Where(u => u.UserName != userParams.Username);
+            usersQuery = usersQuery.Where(u => u.Gender == userParams.Gender);
+            usersQuery = usersQuery.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
+
+            usersQuery = userParams.OrderBy switch
+            {
+                "created" => usersQuery.OrderByDescending(x => x.Created),
+                _ => usersQuery.OrderByDescending(x => x.LastActive)
+            };
+
+            var query = usersQuery
+                .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+                .AsNoTracking();
+
+            return await PagedList<MemberDto>.CreateAsync(query, userParams.PageNumber, userParams.PageSize);
         }
 
-        public async Task<MemberDto> GetMemeberByUsername(string username)
+        public async Task<MemberDto> GetMemberByUsername(string username)
         {
             return await _context.Users
             .Where(x => x.UserName == username)
