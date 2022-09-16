@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Member } from 'src/app/_models/Member';
-import { MembersService } from 'src/app/_services/members.service';
 import { NgxGalleryOptions, NgxGalleryImage, NgxGalleryAnimation } from '@kolkov/ngx-gallery';
+import { MessageService } from 'src/app/_services/message.service';
+import { Message } from 'src/app/_models/message';
+import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
 
 @Component({
   selector: 'app-member-detail',
@@ -14,12 +16,20 @@ export class MemberDetailComponent implements OnInit {
   member: Member;
   galleryOptions: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[];
+  messages: Message[] = [];
+  @ViewChild('memberTabs', {static: true}) memberTabs: TabsetComponent;
+  selectedTab: TabDirective;
 
 
-  constructor(private memberService : MembersService, private route: ActivatedRoute) { }
+  constructor(private route: ActivatedRoute, private messageService: MessageService) { }
 
   ngOnInit(): void {
-    this.loadMember();
+    this.route.data.subscribe(data =>
+      this.member = data.member);
+
+    this.route.queryParams.subscribe(params => {
+      params.tab ? this.selectTab(params.tab) : this.selectTab(0);
+    })
 
     this.galleryOptions = [{
       width: '500px',
@@ -29,14 +39,8 @@ export class MemberDetailComponent implements OnInit {
       imageAnimation: NgxGalleryAnimation.Slide,
       preview: false
     }];
-  }
 
-  loadMember() {
-    this.memberService.getMember(this.route.snapshot.paramMap.get('username'))
-      .subscribe(member => {
-        this.member = member;
-        this.galleryImages = this.getImages();
-      });
+    this.galleryImages = this.getImages();
   }
 
   getImages(): NgxGalleryImage[] {
@@ -50,6 +54,22 @@ export class MemberDetailComponent implements OnInit {
     }
 
       return imagesUrls;
+  }
+
+  loadMessageThread() {
+    this.messageService.getMessageThread(this.member.id).subscribe(response =>
+      this.messages = response);
+  }
+
+  selectTab(tabIndex: number) {
+    this.memberTabs.tabs[tabIndex].active = true;
+  }
+
+  onTabSelected(tab: TabDirective) {
+    this.selectedTab = tab;
+    if (tab.heading === 'Messages' && this.messages.length === 0) {
+      this.loadMessageThread();
+    }
   }
 
 }

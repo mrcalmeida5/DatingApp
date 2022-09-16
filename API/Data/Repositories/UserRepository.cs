@@ -20,6 +20,9 @@ namespace API.Data.Repositories
             _context = context;
         }
 
+
+        
+
         public async Task<AppUser> GetUserById(int id)
         {
             //return await _context.Users.FindAsync(id);
@@ -48,10 +51,6 @@ namespace API.Data.Repositories
             _context.Entry(user).State = EntityState.Modified;
         }
 
-        public async Task<bool> SaveAll()
-        {
-            return await _context.SaveChangesAsync() > 0;
-        }
 
         public async Task<PagedList<MemberDto>> GetMembers(UserParams userParams)
         {
@@ -59,7 +58,7 @@ namespace API.Data.Repositories
             var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
 
             var usersQuery = _context.Users.AsQueryable();
-            usersQuery = usersQuery.Where(u => u.UserName != userParams.Username);
+            usersQuery = usersQuery.Where(u => u.Id != userParams.UserId);
             usersQuery = usersQuery.Where(u => u.Gender == userParams.Gender);
             usersQuery = usersQuery.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
 
@@ -76,12 +75,25 @@ namespace API.Data.Repositories
             return await PagedList<MemberDto>.CreateAsync(query, userParams.PageNumber, userParams.PageSize);
         }
 
+        public async Task<MemberDto> GetMemberById(int id)
+        {
+            return await _context.Users
+            .Where(x => x.Id == id)
+            .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
+        }
         public async Task<MemberDto> GetMemberByUsername(string username)
         {
             return await _context.Users
             .Where(x => x.UserName == username)
             .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
+        }
+
+
+        public async Task<bool> SaveAll()
+        {
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }

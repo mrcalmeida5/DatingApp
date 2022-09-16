@@ -7,14 +7,17 @@ namespace API.Interfaces
 {
     public interface IUserRepository
     {
-        void Update(AppUser user);
-        Task<IEnumerable<AppUser>> GetUsers();
         Task<AppUser> GetUserById(int id);
         Task<AppUser> GetUserByUsername(string username);
+        void Update(AppUser user);
+        Task<IEnumerable<AppUser>> GetUsers();
         Task<bool> SaveAll();
 
 
         Task<PagedList<MemberDto>> GetMembers(UserParams paginationParams);
+
+        Task<MemberDto> GetMemberById(int id);
         Task<MemberDto> GetMemberByUsername(string username);
+
     }
 }

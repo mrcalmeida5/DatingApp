@@ -42,7 +42,7 @@ namespace API.Controllers
 
             return new UserDto 
             {
-                 Username = user.UserName, 
+                 Id = user.Id, 
                  KnownAs = user.KnownAs,
                  Token = _tokenService.CreateToken(user),
                  Gender = user.Gender
@@ -71,7 +71,7 @@ namespace API.Controllers
 
             return new UserDto
             {
-                Username = user.UserName,
+                Id = user.Id,
                 KnownAs = user.KnownAs,
                 Token = _tokenService.CreateToken(user),
                 PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,

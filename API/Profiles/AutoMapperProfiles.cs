@@ -20,6 +20,12 @@ namespace API.Profiles
             CreateMap<MemberUpdateDto, AppUser>();
 
             CreateMap<RegisterDto, AppUser>();
+
+            CreateMap<Message, MessageDto>()
+                .ForMember(s => s.SenderPhotoUrl, opt => opt.MapFrom(src => src.Sender.Photos.FirstOrDefault(p => p.IsMain).Url))
+                .ForMember(r => r.RecipientPhotoUrl, opt => opt.MapFrom(src => src.Recipient.Photos.FirstOrDefault(p => p.IsMain).Url));
+
+            CreateMap<CreateMessageDto, Message>();
         }
     }
 }

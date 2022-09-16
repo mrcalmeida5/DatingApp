@@ -1,7 +1,7 @@
 
 
 export interface User {
-    username: string,
+    id: number,
     knownAs: string,
     token: string,
     photoUrl: string,

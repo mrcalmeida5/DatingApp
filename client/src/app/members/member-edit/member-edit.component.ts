@@ -28,9 +28,9 @@ export class MemberEditComponent implements OnInit {
   
 
   constructor(private accountService: AccountService,
-    private memberService: MembersService,
-    private toastrService: ToastrService) { 
-    accountService.currentUser$.pipe(take(1)).subscribe(user => this.user = user);
+    private memberService: MembersService, private toastrService: ToastrService) { 
+      accountService.currentUser$.pipe(take(1)).subscribe(user =>
+        this.user = user);
   }
 
   ngOnInit(): void {
@@ -38,7 +38,8 @@ export class MemberEditComponent implements OnInit {
   }
 
   loadMember() {
-    this.memberService.getMember(this.user.username).subscribe(member => this.member = member);
+    this.memberService.getMember(this.user.id).subscribe(member =>
+      this.member = member);
   }
 
   updateMember() {

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using API.DTOs;
 using API.Extensions;
 using API.Helpers;
@@ -29,8 +28,8 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
         {
-            var user = await _userRepository.GetUserByUsername(User.GetUsername());
-            userParams.Username = user.UserName;
+            var user = await _userRepository.GetUserById(User.GetUserId());
+            userParams.UserId = user.Id;
             if (string.IsNullOrEmpty(userParams.Gender))
                 userParams.Gender = user.Gender == "male" ? "female" : "male";
 
@@ -41,23 +40,18 @@ namespace API.Controllers
             return Ok(users);
         }
 
-        [HttpGet("{username}", Name = "GetUser")]
-        public async Task<ActionResult<MemberDto>> GetUser(string username)
-        {
-            return await _userRepository.GetMemberByUsername(username);
-        }
 
-        // [HttpGet("{id:int}")]
-        // public async Task<ActionResult<MemberDto>> GetUser(int id)
-        // {
-        //     var user = await _userRepository.GetUserById(id);
-        //     return _mapper.Map<MemberDto>(user);
-        //  }
+
+        [HttpGet("{id:int}", Name ="GetUser")]
+        public async Task<ActionResult<MemberDto>> GetUser(int id)
+        {
+            return await _userRepository.GetMemberById(id);
+        }
 
         [HttpPut]
         public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdate)
         {
-            var user = await _userRepository.GetUserByUsername(User.GetUsername());
+            var user = await _userRepository.GetUserById(User.GetUserId());
             if (user != null)
             {
                 _mapper.Map(memberUpdate, user);
@@ -74,7 +68,7 @@ namespace API.Controllers
         [HttpPost("add-photo")]
         public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
         {
-            var user = await _userRepository.GetUserByUsername(User.GetUsername());
+            var user = await _userRepository.GetUserById(User.GetUserId());
             var uploadResult = await _photoService.UploadPhoto(file);
             if (uploadResult.Error != null)
                 return BadRequest(uploadResult.Error.Message);
@@ -101,7 +95,7 @@ namespace API.Controllers
         [HttpPut("set-main-photo/{photoId}")]
         public async Task<ActionResult> SetMainPhoto(int photoId)
         {
-            var user = await _userRepository.GetUserByUsername(User.GetUsername());
+            var user = await _userRepository.GetUserById(User.GetUserId());
 
             var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
             if (photo.IsMain)
@@ -123,7 +117,7 @@ namespace API.Controllers
         [HttpDelete("delete-photo/{photoId}")]
         public async Task<ActionResult> DeletePhoto(int photoId)
         {
-            var user = await _userRepository.GetUserByUsername(User.GetUsername());
+            var user = await _userRepository.GetUserById(User.GetUserId());
             var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
 
             if (photo == null)
